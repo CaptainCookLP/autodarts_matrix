@@ -35,3 +35,4 @@ sudo cp autodarts_matrix.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable autodarts_matrix.service
 sudo systemctl restart autodarts_matrix.service
+

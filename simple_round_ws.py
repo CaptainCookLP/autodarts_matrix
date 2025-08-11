@@ -17,6 +17,7 @@ AUTODARTS_WEBSOCKET_URL = "wss://api.autodarts.io/ms/v0/subscribe"
 SETTINGS_FILE = "/home/pi/rgbserver/settings.json"
 WEBSERVER_URL = os.getenv("WEBSERVER_URL", "http://localhost:5000")
 
+
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
 
