@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}AutoDarts Einstellungen{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>AutoDarts Einstellungen</h3>
+    <form method="POST">
+        <div class="form-group">
+            <label>Benutzername</label>
+            <input name="autodarts_username" class="form-control" value="{{ s.autodarts_username }}">
+        </div>
+        <div class="form-group">
+            <label>Passwort</label>
+            <input name="autodarts_password" type="password" class="form-control" value="{{ s.autodarts_password }}">
+        </div>
+        <div class="form-group">
+            <label>Client ID</label>
+            <input name="autodarts_client_id" class="form-control" value="{{ s.autodarts_client_id }}">
+        </div>
+        <div class="form-group">
+            <label>Client Secret</label>
+            <input name="autodarts_client_secret" class="form-control" value="{{ s.autodarts_client_secret }}">
+        </div>
+        <div class="form-group">
+            <label>Board ID</label>
+            <input name="autodarts_board_id" class="form-control" value="{{ s.autodarts_board_id }}">
+        </div>
+        <button type="submit" class="btn btn-success">Speichern</button>
+    </form>
+</div>
+{% endblock %}
