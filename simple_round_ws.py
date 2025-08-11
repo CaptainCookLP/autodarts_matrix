@@ -4,6 +4,7 @@ import json
 import os
 import ssl
 import threading
+import logging
 
 import certifi
 import websocket
@@ -16,6 +17,9 @@ from autodarts_keycloak_client import AutodartsKeycloakClient
 AUTODARTS_WEBSOCKET_URL = "wss://api.autodarts.io/ms/v0/subscribe"
 SETTINGS_FILE = "/home/pi/rgbserver/settings.json"
 WEBSERVER_URL = os.getenv("WEBSERVER_URL", "http://localhost:5000")
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
@@ -76,6 +80,8 @@ def run_autodarts_ws() -> None:
     )
     kc.start()
     board_id = get_setting("AUTODARTS_BOARD_ID")
+    logger.info("Connecting to AutoDarts websocket for board %s", board_id)
+
 
     def on_open(ws):
         subscribe = {
@@ -104,17 +110,23 @@ def run_autodarts_ws() -> None:
             turns = data.get("turns") or []
             if turns:
                 latest_round = turns[0]
+                logger.info("Received round update: %s", latest_round)
                 socketio.emit("round", latest_round)
                 try:
                     requests.post(f"{WEBSERVER_URL}/dart/update", json=latest_round, timeout=2)
+                    logger.info("Forwarded round to %s", WEBSERVER_URL)
+                except requests.RequestException as exc:
+                    logger.error("Forwarding to webserver failed: %s", exc)
+
                 except requests.RequestException as exc:
                     print("Forwarding to webserver failed:", exc)
 
+
     def on_error(ws, error):
-        print("WebSocket error:", error)
+        logger.error("WebSocket error: %s", error)
 
     def on_close(ws, close_status_code, close_msg):
-        print("WebSocket closed")
+        logger.info("WebSocket closed")
 
     headers = {"Authorization": f"Bearer {kc.access_token}"}
     ws = websocket.WebSocketApp(
@@ -142,6 +154,7 @@ def main() -> None:
     threading.Thread(target=run_autodarts_ws, daemon=True).start()
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8080"))
+    logger.info("Starting round relay on %s:%s", host, port)
     socketio.run(app, host=host, port=port)
 
 

@@ -3,10 +3,14 @@ import json
 import threading
 import time
 import subprocess
+import logging
 from flask import Flask, render_template_string, request, redirect, send_from_directory, jsonify, render_template, flash
 from datetime import datetime
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -422,6 +426,7 @@ def dart_webtab():
 def dart_start():
     global dart_mode, last_dart_update
     data = request.get_json(force=True, silent=True) or {}
+    logger.info("Received dart start: %s", data)
     players = data.get("players", [])
     current = int(data.get("current", 0))
     checkout = str(data.get("checkout", "") or "")
@@ -443,6 +448,7 @@ def dart_start():
 def dart_update():
     global last_dart_update
     data = request.get_json(force=True, silent=True) or {}
+    logger.info("Received dart update: %s", data)
     with state_lock:
         if "players" in data and isinstance(data["players"], list) and data["players"]:
             dart_state["players"] = data["players"]
@@ -485,6 +491,7 @@ def dart_stop():
 
 
 if __name__ == "__main__":
+    logger.info("Starting web server on 0.0.0.0:5000")
     threading.Thread(target=wlan_monitor, daemon=True).start()
     threading.Thread(target=display_loop, daemon=True).start()
     app.run(host="0.0.0.0", port=5000)
