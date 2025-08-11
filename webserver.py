@@ -285,6 +285,23 @@ def config():
 
     return render_template("settings.html", s=settings)
 
+
+@app.route("/darts", methods=["GET", "POST"])
+def darts_settings():
+    settings = load_settings()
+    if request.method == "POST":
+        settings.update({
+            "autodarts_username": request.form.get("autodarts_username", ""),
+            "autodarts_password": request.form.get("autodarts_password", ""),
+            "autodarts_client_id": request.form.get("autodarts_client_id", ""),
+            "autodarts_client_secret": request.form.get("autodarts_client_secret", ""),
+            "autodarts_board_id": request.form.get("autodarts_board_id", ""),
+        })
+        save_settings(settings)
+        return redirect("/darts")
+
+    return render_template("darts.html", s=settings)
+
 @app.route("/gif")
 def gif_list():
     gif_files = [f for f in os.listdir(GIF_FOLDER) if f.lower().endswith(".gif")]

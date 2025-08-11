@@ -13,6 +13,7 @@ from flask_socketio import SocketIO
 from autodarts_keycloak_client import AutodartsKeycloakClient
 
 AUTODARTS_WEBSOCKET_URL = "wss://api.autodarts.io/ms/v0/subscribe"
+SETTINGS_FILE = "/home/pi/rgbserver/settings.json"
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
@@ -29,18 +30,49 @@ def get_env(name: str) -> str:
     return value
 
 
+def load_settings() -> dict:
+    """Load settings from ``SETTINGS_FILE``."""
+
+    if not os.path.exists(SETTINGS_FILE):
+        return {}
+    with open(SETTINGS_FILE, "r") as fh:
+        return json.load(fh)
+
+
+def get_setting(name: str) -> str:
+    """Return AutoDarts credential ``name`` from env or settings file."""
+
+    env = os.getenv(name)
+    if env:
+        return env
+
+    mapping = {
+        "AUTODARTS_USERNAME": "autodarts_username",
+        "AUTODARTS_PASSWORD": "autodarts_password",
+        "AUTODARTS_CLIENT_ID": "autodarts_client_id",
+        "AUTODARTS_CLIENT_SECRET": "autodarts_client_secret",
+        "AUTODARTS_BOARD_ID": "autodarts_board_id",
+    }
+    settings = load_settings()
+    key = mapping.get(name)
+    value = settings.get(key) if settings else None
+    if not value:
+        raise RuntimeError(f"Missing setting: {name}")
+    return value
+
+
 def run_autodarts_ws() -> None:
     """Listen to the AutoDarts websocket and emit round events via SocketIO."""
 
     os.environ["SSL_CERT_FILE"] = certifi.where()
     kc = AutodartsKeycloakClient(
-        username=get_env("AUTODARTS_USERNAME"),
-        password=get_env("AUTODARTS_PASSWORD"),
-        client_id=get_env("AUTODARTS_CLIENT_ID"),
-        client_secret=get_env("AUTODARTS_CLIENT_SECRET"),
+        username=get_setting("AUTODARTS_USERNAME"),
+        password=get_setting("AUTODARTS_PASSWORD"),
+        client_id=get_setting("AUTODARTS_CLIENT_ID"),
+        client_secret=get_setting("AUTODARTS_CLIENT_SECRET"),
     )
     kc.start()
-    board_id = get_env("AUTODARTS_BOARD_ID")
+    board_id = get_setting("AUTODARTS_BOARD_ID")
 
     def on_open(ws):
         subscribe = {
