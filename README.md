@@ -10,6 +10,8 @@ RGB matrix.  The project contains two main entry points:
 
 ## Development
 
+Set up a virtual environment and install the dependencies, including those required for running tests:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
