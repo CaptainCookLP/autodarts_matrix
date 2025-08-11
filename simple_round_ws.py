@@ -21,6 +21,7 @@ WEBSERVER_URL = os.getenv("WEBSERVER_URL", "http://localhost:5000")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
 
@@ -81,6 +82,7 @@ def run_autodarts_ws() -> None:
     board_id = get_setting("AUTODARTS_BOARD_ID")
     logger.info("Connecting to AutoDarts websocket for board %s", board_id)
 
+
     def on_open(ws):
         subscribe = {
             "channel": "autodarts.boards",
@@ -115,6 +117,10 @@ def run_autodarts_ws() -> None:
                     logger.info("Forwarded round to %s", WEBSERVER_URL)
                 except requests.RequestException as exc:
                     logger.error("Forwarding to webserver failed: %s", exc)
+
+                except requests.RequestException as exc:
+                    print("Forwarding to webserver failed:", exc)
+
 
     def on_error(ws, error):
         logger.error("WebSocket error: %s", error)
