@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}LED Matrix Einstellungen{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>LED Matrix Einstellungen</h3>
+    <form method="POST">
+        {% for key, value in s.items() %}
+            <div class="form-group">
+                <label>{{key}}</label>
+                <input name="{{key}}" class="form-control" value="{{value}}">
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success">Speichern</button>
+    </form>
+</div>
+{% endblock %}

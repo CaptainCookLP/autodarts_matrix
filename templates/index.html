@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Status{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>Status</h3>
+    <p><strong>Verbunden mit:</strong> {{ ssid }}</p>
+    <p><strong>IP Adresse:</strong> {{ ip }}</p>
+    <p><strong>Uhrzeit:</strong> {{ time }}</p>
+</div>
+{% endblock %}

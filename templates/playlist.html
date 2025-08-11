@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Playlist Editor{% endblock %}
+{% block extra_head %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<style>
+.column { float:left; width: 45%; margin: 2%; min-height: 400px; background:#1e1e1e; padding:10px; border-radius:10px;}
+ul { list-style-type:none; min-height: 300px; padding: 10px; background:#2c2c2c; border: 1px solid #444; }
+li { margin: 10px; padding:10px; background:#333; color:#ccc; border-radius:5px; cursor: move; text-align:center; }
+li img { width: 128px; display:block; margin:auto; }
+.clearfix::after { content:""; display:table; clear:both; }
+@media (max-width: 768px) {
+    .column { width: 100%; margin: 0 0 20px 0; }
+}
+</style>
+{% endblock %}
+{% block content %}
+<h3>Playlist Editor</h3>
+<div class="clearfix">
+<div class="column">
+<h4>Verfügbare GIFs</h4>
+<ul id="available" class="connectedSortable">
+{% for gif in gifs if gif not in playlist['order'] %}
+    <li data-filename="{{gif}}">
+        <img src="/gifs/{{gif}}" alt="{{gif}}">
+        <div>{{ gif[:-4] }}</div>
+    </li>
+{% endfor %}
+</ul>
+</div>
+
+<div class="column">
+<h4>Aktuelle Playlist</h4>
+<ul id="playlist" class="connectedSortable">
+{% for gif in playlist['order'] %}
+    <li data-filename="{{gif}}">
+        <img src="/gifs/{{gif}}" alt="{{gif}}">
+        <div>{{ gif[:-4] }}</div>
+    </li>
+{% endfor %}
+</ul>
+</div>
+</div>
+
+<br>
+<button onclick="savePlaylist()" class="btn btn-success">Playlist speichern</button>
+<form method="POST" action="/playlist/start" style="display:inline;">
+    <button class="btn btn-primary">Playlist abspielen</button>
+</form>
+<form method="POST" action="/gif/stop" style="display:inline;">
+    <button class="btn btn-danger">Stop</button>
+</form>
+
+<script>
+$(function() {
+    $(".connectedSortable").sortable({
+        connectWith: ".connectedSortable"
+    }).disableSelection();
+});
+
+function savePlaylist() {
+    var playlist = [];
+    $("#playlist li").each(function() {
+        playlist.push($(this).data("filename"));
+    });
+    $.ajax({
+        url: "/save_playlist",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ order: playlist }),
+        success: function() { alert("Playlist gespeichert!"); }
+    });
+}
+</script>
+{% endblock %}

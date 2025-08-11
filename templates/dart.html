@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Darts Test{% endblock %}
+
+{% block content %}
+<h2 class="text-center">Darts – Anzeige testen</h2>
+<p class="text-center text-muted mb-4">
+  Name linksbündig · Score / Sets / Legs rechtsbündig · aktueller Spieler grün.
+</p>
+
+<table id="players" class="table table-dark table-striped table-sm">
+  <thead>
+    <tr>
+      <th style="width:40px;">#</th>
+      <th>Name</th>
+      <th style="width:110px;">Score</th>
+      <th style="width:90px;">Sets</th>
+      <th style="width:90px;">Legs</th>
+      <th style="width:110px;">Aktion</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="idx">1</td>
+      <td><input type="text" class="form-control form-control-sm" value="Spieler 1"></td>
+      <td><input type="number" class="form-control form-control-sm text-right" value="501"></td>
+      <td><input type="number" class="form-control form-control-sm text-right" value="0"></td>
+      <td><input type="number" class="form-control form-control-sm text-right" value="0"></td>
+      <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">Entfernen</button></td>
+    </tr>
+    <tr>
+      <td class="idx">2</td>
+      <td><input type="text" class="form-control form-control-sm" value="Spieler 2"></td>
+      <td><input type="number" class="form-control form-control-sm text-right" value="501"></td>
+      <td><input type="number" class="form-control form-control-sm text-right" value="0"></td>
+      <td><input type="number" class="form-control form-control-sm text-right" value="0"></td>
+      <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">Entfernen</button></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="form-inline mb-3">
+  <button type="button" class="btn btn-sm btn-primary mr-2" onclick="addRow()">+ Spieler</button>
+  <label class="mr-2">Aktueller Index:</label>
+  <input id="currentIndex" type="number" class="form-control form-control-sm" style="width:80px;" value="0" min="0">
+</div>
+
+<!-- Checkout-Eingabe (wird auf der Matrix nur bei ≤3 Spielern gezeigt) -->
+<div class="form-inline mb-3">
+  <label class="mr-2">Checkout:</label>
+  <input id="checkout" type="text" class="form-control form-control-sm" style="width:280px;"
+         placeholder="z. B. T20 T19 D8">
+  <button class="btn btn-outline-secondary btn-sm ml-2" type="button" onclick="q('#checkout').value='';">Leeren</button>
+  <small class="text-muted ml-3">Anzeige nur bei ≤ 3 Spielern (zentriert in Zeile 4).</small>
+</div>
+
+<div class="mb-3">
+  <button class="btn btn-success btn-sm" onclick="startDart()">Start</button>
+  <button class="btn btn-warning btn-sm" onclick="updateDart()">Update</button>
+  <button class="btn btn-info btn-sm" onclick="nextPlayer()">Nächster</button>
+  <button class="btn btn-danger btn-sm" onclick="stopDart()">Stop</button>
+</div>
+
+<div id="status" class="small text-muted"></div>
+
+<!-- Live-Inaktivitätszähler -->
+<div id="inactivityCounter" class="small mt-2">
+  Inaktivität: <span id="elapsedSeconds">0</span>s / Limit: <span id="limitSeconds">0</span>s
+  <span id="pgStatus" class="ml-2 text-info"></span>
+</div>
+
+<script>
+function q(sel){ return document.querySelector(sel); }
+function qa(sel){ return Array.from(document.querySelectorAll(sel)); }
+
+function renumber(){
+  qa('#players tbody tr').forEach((tr, i) => tr.querySelector('.idx').textContent = i+1);
+  highlightCurrent();
+}
+
+function addRow(){
+  const tbody = q('#players tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="idx"></td>
+    <td><input type="text" class="form-control form-control-sm" value="Spieler ${tbody.children.length+1}"></td>
+    <td><input type="number" class="form-control form-control-sm text-right" value="501"></td>
+    <td><input type="number" class="form-control form-control-sm text-right" value="0"></td>
+    <td><input type="number" class="form-control form-control-sm text-right" value="0"></td>
+    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">Entfernen</button></td>
+  `;
+  tbody.appendChild(tr);
+  renumber();
+}
+
+function removeRow(btn){
+  btn.closest('tr').remove();
+  renumber();
+}
+
+function collectState(){
+  const players = qa('#players tbody tr').map(tr => {
+    const tds = tr.querySelectorAll('td');
+    return {
+      name:  tds[1].querySelector('input').value.trim() || "Spieler",
+      score: parseInt(tds[2].querySelector('input').value || "0", 10),
+      sets:  parseInt(tds[3].querySelector('input').value || "0", 10),
+      legs:  parseInt(tds[4].querySelector('input').value || "0", 10)
+    };
+  });
+  let current = parseInt(q('#currentIndex').value || "0", 10);
+  if (players.length > 0) current = Math.max(0, Math.min(current, players.length-1));
+
+  const checkout = (q('#checkout').value || "").trim();
+
+  return { players, current, checkout };
+}
+
+function highlightCurrent(){
+  const { current } = collectState();
+  qa('#players tbody tr').forEach((tr, i) => tr.classList.toggle('table-success', i === current));
+}
+
+q('#currentIndex').addEventListener('input', highlightCurrent);
+q('#players').addEventListener('input', highlightCurrent);
+highlightCurrent();
+
+async function postJSON(url, data){
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: data ? JSON.stringify(data) : null
+  });
+  let text = await res.text();
+  try { text = JSON.parse(text); } catch(e){}
+  return { ok: res.ok, status: res.status, body: text };
+}
+
+function showStatus(msg, ok=true){
+  const el = q('#status');
+  el.textContent = typeof msg === 'string' ? msg : JSON.stringify(msg);
+  el.classList.toggle('text-danger', !ok);
+  el.classList.toggle('text-success', ok);
+}
+
+async function startDart(){
+  const data = collectState();
+  if (!data.players.length){ showStatus('Bitte mindestens einen Spieler anlegen.', false); return; }
+  const r = await postJSON('/dart/start', data);
+  showStatus(r.body, r.ok);
+}
+
+async function updateDart(){
+  const data = collectState();
+  if (!data.players.length){ showStatus('Keine Spieler vorhanden.', false); return; }
+  const r = await postJSON('/dart/update', data);
+  showStatus(r.body, r.ok);
+}
+
+async function nextPlayer(){
+  const r = await postJSON('/dart/next');
+  if (r.ok){
+    const s = collectState();
+    if (s.players.length){
+      q('#currentIndex').value = (s.current + 1) % s.players.length;
+      highlightCurrent();
+    }
+  }
+  showStatus(r.body, r.ok);
+}
+
+async function stopDart(){
+  const r = await postJSON('/dart/stop');
+  showStatus(r.body, r.ok);
+}
+
+/* --- Live-Inaktivitätszähler --- */
+async function updateInactivityCounter(){
+  try {
+    const res = await fetch('/dart/status');
+    if(!res.ok) return;
+    const data = await res.json();
+    q('#elapsedSeconds').textContent = data.elapsed;
+    q('#limitSeconds').textContent = data.inactivity_limit;
+
+    const pg = q('#pgStatus');
+    if (data.pg_autoplay_active) {
+      pg.textContent = 'PG-Autoplay läuft';
+      pg.className = 'ml-2 text-success';
+    } else {
+      pg.textContent = '';
+      pg.className = 'ml-2 text-info';
+    }
+
+    // Optionales Ampel-Feedback nahe am Limit:
+    const ratio = data.inactivity_limit ? (data.elapsed / data.inactivity_limit) : 0;
+    const el = q('#inactivityCounter');
+    el.classList.remove('text-success','text-warning','text-danger');
+    if (ratio < 0.5) el.classList.add('text-success');
+    else if (ratio < 0.9) el.classList.add('text-warning');
+    else el.classList.add('text-danger');
+
+  } catch(e){
+    console.error('Status-Update fehlgeschlagen', e);
+  }
+}
+setInterval(updateInactivityCounter, 1000);
+updateInactivityCounter();
+</script>
+{% endblock %}

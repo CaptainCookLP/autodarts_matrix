@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}LED Matrix Controller{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container { max-width: 600px; margin: auto; }
+        a, a:hover { color: #80cbc4; }
+        .btn { margin: 5px 0; }
+        .card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center">LED Matrix Controller</h1>
+    <p class="text-center">
+        <a href="/">Home</a> | 
+        <a href="/settings">Einstellungen</a> | 
+        <a href="/gif">GIF Steuerung</a> | 
+        <a href="/playlist">Playlist</a> |
+		<a href="/dart">Darts</a>
+    </p>
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>

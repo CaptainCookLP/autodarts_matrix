@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}GIF Übersicht{% endblock %}
+{% block content %}
+<h3>GIF Übersicht</h3>
+
+<!-- Status Meldungen -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Schließen">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Upload Formular -->
+<div class="card">
+    <h4>GIF hochladen</h4>
+    <form method="POST" action="/gif/upload" enctype="multipart/form-data">
+        <div class="form-group">
+            <input type="file" name="gif_file" accept=".gif" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success">Hochladen</button>
+    </form>
+</div>
+
+<!-- GIF Liste -->
+<div class="row">
+    {% for gif in gifs %}
+    <div class="col-6 col-md-4 mb-4">
+        <div class="card text-center">
+            <img src="/gifs/{{gif}}" alt="{{gif}}" style="width:100%;">
+            <p>{{gif}}</p>
+            <form method="POST" action="/gif/start">
+                <input type="hidden" name="gif" value="{{gif}}">
+                <button type="submit" class="btn btn-primary btn-block">Starten</button>
+            </form>
+            <form method="POST" action="/gif/delete" onsubmit="return confirm('Wirklich löschen?');">
+                <input type="hidden" name="gif" value="{{gif}}">
+                <button type="submit" class="btn btn-danger btn-block">Löschen</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h4>Status: {{status}}</h4>
+    <form method="POST" action="/gif/stop">
+        <button type="submit" class="btn btn-danger">GIF Player stoppen</button>
+    </form>
+</div>
+{% endblock %}
