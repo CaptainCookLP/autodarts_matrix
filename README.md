@@ -8,7 +8,22 @@ RGB matrix.  The project contains two main entry points:
 * `webserver.py` &ndash; Raspberry&nbsp;Pi oriented web UI for controlling an RGB LED
   matrix and showing player information or GIF playlists.
 
+## Installation
+
+On a fresh Raspberry Pi the entire stack can be installed with:
+
+```bash
+wget https://raw.githubusercontent.com/<your-username>/autodarts_matrix/main/install.sh
+bash install.sh
+```
+
+This script clones the repository, installs the `rpi-rgb-led-matrix` library,
+Python dependencies and registers a systemd service so the web UI and websocket
+bridge start automatically on boot.
+
 ## Development
+
+Set up a virtual environment and install the dependencies, including those required for running tests:
 
 ```bash
 python -m venv .venv
@@ -16,18 +31,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+The project relies on the [hzeller/rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix)
+library for driving the display.  A convenience script is provided to
+install or update this dependency along with the Python requirements:
+
+```bash
+./install.sh
+```
+
 ## Running the round relay
 
-The websocket relay requires a number of environment variables for authenticating
-against AutoDarts:
+Credentials for talking to the AutoDarts API are read from
+`settings.json`.  They can be edited via the web interface at `/darts`.
 
-- `AUTODARTS_USERNAME`
-- `AUTODARTS_PASSWORD`
-- `AUTODARTS_CLIENT_ID`
-- `AUTODARTS_CLIENT_SECRET`
-- `AUTODARTS_BOARD_ID`
-
-Start the service with:
+Start the websocket relay service with:
 
 ```bash
 python simple_round_ws.py
