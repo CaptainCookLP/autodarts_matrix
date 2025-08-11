@@ -7,6 +7,7 @@ import threading
 
 import certifi
 import websocket
+import requests
 from flask import Flask, jsonify
 from flask_socketio import SocketIO
 
@@ -14,6 +15,8 @@ from autodarts_keycloak_client import AutodartsKeycloakClient
 
 AUTODARTS_WEBSOCKET_URL = "wss://api.autodarts.io/ms/v0/subscribe"
 SETTINGS_FILE = "/home/pi/rgbserver/settings.json"
+WEBSERVER_URL = os.getenv("WEBSERVER_URL", "http://localhost:5000")
+
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
@@ -102,6 +105,10 @@ def run_autodarts_ws() -> None:
             if turns:
                 latest_round = turns[0]
                 socketio.emit("round", latest_round)
+                try:
+                    requests.post(f"{WEBSERVER_URL}/dart/update", json=latest_round, timeout=2)
+                except requests.RequestException as exc:
+                    print("Forwarding to webserver failed:", exc)
 
     def on_error(ws, error):
         print("WebSocket error:", error)

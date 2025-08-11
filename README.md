@@ -8,6 +8,19 @@ RGB matrix.  The project contains two main entry points:
 * `webserver.py` &ndash; Raspberry&nbsp;Pi oriented web UI for controlling an RGB LED
   matrix and showing player information or GIF playlists.
 
+## Installation
+
+On a fresh Raspberry Pi the entire stack can be installed with:
+
+```bash
+wget https://raw.githubusercontent.com/<your-username>/autodarts_matrix/main/install.sh
+bash install.sh
+```
+
+This script clones the repository, installs the `rpi-rgb-led-matrix` library,
+Python dependencies and registers a systemd service so the web UI and websocket
+bridge start automatically on boot.
+
 ## Development
 
 Set up a virtual environment and install the dependencies, including those required for running tests:
