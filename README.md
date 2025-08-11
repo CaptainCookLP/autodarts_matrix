@@ -18,18 +18,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+The project relies on the [hzeller/rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix)
+library for driving the display.  A convenience script is provided to
+install or update this dependency along with the Python requirements:
+
+```bash
+./install.sh
+```
+
 ## Running the round relay
 
-The websocket relay requires a number of environment variables for authenticating
-against AutoDarts:
+Credentials for talking to the AutoDarts API are read from
+`settings.json`.  They can be edited via the web interface at `/darts`.
 
-- `AUTODARTS_USERNAME`
-- `AUTODARTS_PASSWORD`
-- `AUTODARTS_CLIENT_ID`
-- `AUTODARTS_CLIENT_SECRET`
-- `AUTODARTS_BOARD_ID`
-
-Start the service with:
+Start the websocket relay service with:
 
 ```bash
 python simple_round_ws.py
